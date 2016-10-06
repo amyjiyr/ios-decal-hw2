@@ -32,7 +32,11 @@ extension Double {
             3. Display an integer when the result is an integer of allowable size.
             Optional: Use scientific notation for any values that exceed the character max.
         */
-        return "\(self)"
+        if (self == floor(self)) {
+            return String(Int(floor(self)))
+        } else {
+            return String(self)
+        }
     }
 }
 

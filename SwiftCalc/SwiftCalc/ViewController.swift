@@ -21,7 +21,8 @@ class ViewController: UIViewController {
     
     // TODO: This looks like a good place to add some data structures.
     //       One data structure is initialized below for reference.
-    var someDataStructure: [String] = [""]
+    // the action sequence will be first number pressed, operator pressed, and second number pressed
+    var action_seq: [String] = ["", "", ""]
     
 
     override func viewDidLoad() {
@@ -46,13 +47,13 @@ class ViewController: UIViewController {
     // TODO: A method to update your data structure(s) would be nice.
     //       Modify this one or create your own.
     func updateSomeDataStructure(_ content: String) {
-        print("Update me like one of those PCs")
+        
     }
     
     // TODO: Ensure that resultLabel gets updated.
     //       Modify this one or create your own.
     func updateResultLabel(_ content: String) {
-        print("Update me like one of those PCs")
+        resultLabel.text = content
     }
     
     
@@ -66,14 +67,45 @@ class ViewController: UIViewController {
     //       Modify this one or create your own.
     func intCalculate(a: Int, b:Int, operation: String) -> Int {
         print("Calculation requested for \(a) \(operation) \(b)")
-        return 0
+        var result = 0
+        if operation ==  "/" {
+            result = a / b
+        } else if operation == "*" {
+            result = a * b
+        } else if operation == "-" {
+            result = a - b
+        } else if operation == "+" {
+            result = a + b
+        } else if operation == "=" {
+            result = a
+        } else {
+            result = 0
+        }
+        return result
     }
     
     // TODO: A general calculate method for doubles
     //       Modify this one or create your own.
     func calculate(a: String, b:String, operation: String) -> Double {
         print("Calculation requested for \(a) \(operation) \(b)")
-        return 0.0
+        // need to cast first
+        let a = Double(a)!
+        let b = Double(b)!
+        var result = 0.0
+        if operation ==  "/" {
+            result = a / b
+        } else if operation == "*" {
+            result = a * b
+        } else if operation == "-" {
+            result = a - b
+        } else if operation == "+" {
+            result = a + b
+        } else if operation == "=" {
+            result = a
+        } else {
+            result = 0
+        }
+        return result
     }
     
     // REQUIRED: The responder to a number button being pressed.
@@ -81,16 +113,139 @@ class ViewController: UIViewController {
         guard Int(sender.content) != nil else { return }
         print("The number \(sender.content) was pressed")
         // Fill me in!
+        if action_seq[0] != "" {
+            if action_seq[1] != "" {
+                if action_seq[2] != "" {
+                    // always check for number of characters
+                    if (action_seq[2].characters.count < 7) {
+                        action_seq[2] += sender.content
+                        updateResultLabel(action_seq[2])
+                    }
+                } else {
+                    action_seq[2] = sender.content
+                    updateResultLabel(action_seq[2])
+                }
+            } else {
+                // always check for number of characters
+                if (action_seq[0].characters.count < 7) {
+                    action_seq[0] += sender.content
+                    updateResultLabel(action_seq[0])
+                }
+            }
+        } else{
+            action_seq[0] = sender.content
+            updateResultLabel(action_seq[0])
+        }
+        // result is always stored at index 0
     }
     
     // REQUIRED: The responder to an operator button being pressed.
     func operatorPressed(_ sender: CustomButton) {
+        guard String(sender.content) != nil else { return }
         // Fill me in!
+        print("The op \(sender.content) was pressed")
+        if (sender.content == "C") {
+            action_seq[0] = ""
+            action_seq[1] = ""
+            action_seq[2] = ""
+            updateResultLabel("0")
+        }
+        if action_seq[1] != "" {
+            if (sender.content == "+/-") {
+                if ((action_seq[2].characters.count < 7) && (action_seq[2] != "")) {
+                    let num = Int(action_seq[2])!
+                    let neg = 0 - num
+                    action_seq[2] = String(neg)
+                    updateResultLabel(String(neg))
+                }
+            } else if (sender.content == "%") {
+                let per = Int(action_seq[0])! / 100
+                action_seq[0] = String(per)
+                updateResultLabel(action_seq[0])
+            } else {
+                if (action_seq[0] == "") {
+                    action_seq[1] = sender.content
+                    calculate()
+                } else {
+                    if (action_seq[2] != "") {
+                        // update the resultlabel with the result of calculating a and b
+                        //let a = Int(action_seq[0])
+                        //let b = Int(action_seq[2])
+                        let ret = calculate(a: action_seq[0], b: action_seq[2], operation: action_seq[1])
+                        updateResultLabel(ret.prettyOutput)
+                        action_seq[0] = ret.prettyOutput
+                        if (sender.content == "=") {
+                            action_seq[1] = ""
+                        } else {
+                            action_seq[1] = sender.content
+                        }
+                        action_seq[2] = ""
+                    }
+                }
+            }
+            
+        } else{
+            if (sender.content == "+/-") {
+                if ((action_seq[0].characters.count < 7) && (action_seq[0] != "")) {
+                    let num = Int(action_seq[0])!
+                    let neg = 0 - num
+                    action_seq[0] = String(neg)
+                    updateResultLabel(String(neg))
+                }
+            } else if (sender.content == "=") {
+                let ret = calculate(a: action_seq[0], b: action_seq[2], operation: sender.content)
+                updateResultLabel(ret.prettyOutput)
+                action_seq[0] = ret.prettyOutput
+                action_seq[1] = ""
+                action_seq[2] = ""
+
+            } else {
+                action_seq[1] = sender.content
+            }
+        }
+        // always store the result at action_seq 0
     }
     
     // REQUIRED: The responder to a number or operator button being pressed.
     func buttonPressed(_ sender: CustomButton) {
+        // get the button and decide which operator to do
+        if (sender.content == "0") {
+            // 0 gets added to the end if entering first number, or
+            if ((action_seq[1] == "") && (action_seq[0].characters.count < 7)) {
+                action_seq[0] += sender.content
+                updateResultLabel(action_seq[0])
+            } else if ((action_seq[1] != "") && (action_seq[2].characters.count < 7)) {
+                action_seq[2] += sender.content
+                updateResultLabel(action_seq[2])
+            }
+        } else if (sender.content == ".") {
+            // if decimal was pressed for the first number, then for second number
+            if (action_seq[0].contains(".") == false) {
+                if action_seq[0] == "" {
+                    action_seq[0] = "0."
+                    updateResultLabel(action_seq[0])
+                }
+                else if (action_seq[0].characters.count < 7) {
+                    action_seq[0] += "."
+                    updateResultLabel(action_seq[0])
+                }
+            }  else if ((action_seq[2].contains(".") == false) && (action_seq[1] != "")) {
+                if action_seq[2] == "" {
+                    action_seq[2] = "0."
+                    updateResultLabel(action_seq[2])
+                }
+                else if (action_seq[2].characters.count < 7) {
+                    action_seq[2] += "."
+                    updateResultLabel(action_seq[2])
+                }
+            }
+            
+        } else {
+            numberPressed(sender)
+        }
+        
        // Fill me in!
+
     }
     
     // IMPORTANT: Do NOT change any of the code below.
